@@ -367,7 +367,7 @@ $__timeFilter(time)
 - I used Java because it's the language i'm the best at and it really works well for this problem. I don't have experience with Scala
 - I chose SpringBoot because it's the easiest, fastest framework to develop in.
 - The cat-mood-producer uses Java 8 Parallel Stream, it can also use the number of provided threads to have more control about the number of thread, i found the Parallel Stream to be faster so it's the default implementation -Dexecutor.implementation=stream|anything
-- Kafka was a no-brainer because of it's scalability and its stability and maturity.
+- Kafka was a no-brainer because of its scalability and its stability and maturity.
 - The 2 apps can be monitored with JMX using VisualVM for ex, I used Codahale (dropwizard) metrics
 - The use of Timescaledb was because it had good performance and i was familiar with SQL (haven't used PostgreSQL before), I could have used InfluxDB
 - I used Grafana because it's Open Source and popular
@@ -407,35 +407,11 @@ Grafana stats
 ](http://www.antaki.ca/cats/grafana.png)
 ### Benchmark
 
-  
-
-50,000 cats every 5 seconds.
-
-  
-
-Producer submitted 50,000 * 4 in:
-
-  
-
-2019-06-25 20:57:40.077 INFO 67993 --- [pool-1-thread-1] c.a.w.c.p.handler.StreamsMoodHandler : changeMood.streams.time.ms = 548 ms
-
-  
-
-2019-06-25 20:57:44.658 INFO 67993 --- [pool-1-thread-1] c.a.w.c.p.handler.StreamsMoodHandler : changeMood.streams.time.ms = 125 ms
-
-  
-
-2019-06-25 20:57:49.608 INFO 67993 --- [pool-1-thread-1] c.a.w.c.p.handler.StreamsMoodHandler : changeMood.streams.time.ms = 78 ms
-
-  
-
-2019-06-25 20:57:54.587 INFO 67993 --- [pool-1-thread-1] c.a.w.c.p.handler.StreamsMoodHandler : changeMood.streams.time.ms = 57 ms
-
-  
-
-  
-
-Consumer consumed 200,000 in 16 seconds with 2 threads at a rate of 12,500 messages per second. Limiting factor was the PostgreSQL DB running in Docker on Mac
+| Nb cats                    | Producer | Consumer 10 threads | Consumer 20 threads | Consumption rate (per second) | Comment                                                              |
+|----------------------------|----------|---------------------|---------------------|-------------------------------|----------------------------------------------------------------------|
+| 5000 = 1000 every 5s       | 392 ms   | 800 ms              | 1.1s                | 6,250                         |                                                                      |
+| 250,000 = 50,000 every 5s  | 808 ms   | 13s                 | 10s                 | 19,230                        |                                                                      |
+| 1,000,000= 200,000 every 5 | 2469     | 37s                 | 37s                 | 27,027                        | This shows bottleneck is from DB side  as it's running on Docker MAC |
 
   
 
@@ -459,6 +435,7 @@ Currently using JSON for ease of use, but using Avro or GPB (Google Protocol Buf
 
 - Currently creating the cats is done in the same project. In real life this would come from another process that would add the creation event in Kafka and we would subscribe to it.
 
+- The single process producer is not resilient, i could have many processes instead of 1.
   
 
 - The scheduling is not scalable at the moment as it's done with only 1 thread in the same application, we can use ShedLock or Quartz in order to spread the work to be done over a cluster of servers
